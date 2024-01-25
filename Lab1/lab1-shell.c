@@ -83,5 +83,17 @@ int main(void)
 	 (2) the child process will invoke execvp()
 	 (3) if background == 0, the parent will wait, 
 		otherwise returns to the setup() function. */
+        /*chdir for cd command*/
+        pid_t pid = fork();
+        if (pid < 0) {
+            fprintf(stderr, "Fork Failed");
+            return 1;
+        } else if (pid == 0) {
+            execvp(args[0], args);
+        } else {
+            if (background == 0) {
+                while (wait(NULL) != pid);
+            }
+        }
     }
 }

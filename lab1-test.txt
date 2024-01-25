@@ -1,0 +1,46 @@
+Part I: Before Using the Simple Test Cases:
+
+1. Create a `test' directory in your home directory by
+
+$ mkdir test
+
+2. Copy this test-lab1.txt file into the test directory by
+
+$ cp test-lab1.txt ~/test/
+
+3. Copy YOUR `lab1-shell.c' into the test directory by
+
+$ cp lab1-shell.c ~/test/
+
+4. Compile your `lab1-shell.c' in test directory, you can use
+makefile if you like, or simply use
+
+$ gcc -g lab1-shell.c -o mysh 
+
+Now, if there is no error, you can begin to test your small
+shell, ;-).
+
+$ ./mysh
+
+
+Part II: Sample Test Cases
+
+----
+COMMAND-> mv test-lab1.txt help 
+Expected Results: The `test-lab1.txt' file in the `test' directory should be
+renamed as `help'.
+----
+
+----
+COMMAND-> cat help 
+Expected Results: The content of this file should be printed onto the
+screen.
+----
+
+----
+COMMAND-> ./mysh
+Expected Results: Start a second `mysh' shell in the first `mysh' shell.
+The command prompt should be waiting for user's input.  When 
+you press `Ctrl+d', you should go back into your first `mysh', 
+still having a "COMMAND-> " waiting for input.
+----
