@@ -56,6 +56,11 @@ void setup(char inputBuffer[], char *args[],int *background)
             *background = 1;
             inputBuffer[i] = '\0';
             break;
+        case 'c':
+            if (inputBuffer[i+1] == 'd') {
+                chdir(args[ct]);
+            }  
+            break;
             
         default :             /* some other character */
             if (start == -1)
