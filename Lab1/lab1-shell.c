@@ -110,40 +110,39 @@ int main(void)
         /*Implements cp command before creating a child process*/
         else if (strcmp(args[0], "cp") == 0)
         {
-            if (args[1] == NULL || args[2] == NULL)
+            if (args[1] == NULL)
             {
-                fprintf(stderr, "Expected arguments to \"cp\"\n");
+                fprintf(stderr, "Expected argument to \"cp\"\n");
             }
             else
             {
-                char buffer[256];
-                FILE *src, *dst;
-                src = fopen(args[1], "r");
-                dst = fopen(args[2], "w");
-                if (src == NULL || dst == NULL)
+                if (args[2] == NULL)
                 {
-                    perror("Error");
+                    fprintf(stderr, "Expected argument to \"cp\"\n");
                 }
                 else
                 {
-                    size_t n, m;
-                    do
+                    pid_t pid = fork();
+                    if (pid < 0)
                     {
-                        n = fread(buffer, 1, sizeof buffer, src);
-                        if (n)
-                            m = fwrite(buffer, 1, n, dst);
-                        else
-                            m = 0;
-                    } while ((n > 0) && (n == m));
-                    if (m)
-                        perror("copy");
-
-                    if (fclose(src) != 0 || fclose(dst) != 0)
+                        fprintf(stderr, "Fork Failed");
+                        return 1;
+                    }
+                    else if (pid == 0)
                     {
-                        perror("Error");
+                        execlp("/bin/cp", "cp", args[1], args[2], NULL);
+                    }
+                    else
+                    {
+                        if (background == 0)
+                        {
+                            while (wait(NULL) != pid)
+                                ;
+                        }
                     }
                 }
             }
+            continue; /* Skip the rest of the loop iteration */
         }
         else
         {
