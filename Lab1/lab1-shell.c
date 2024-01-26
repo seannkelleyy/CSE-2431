@@ -1,51 +1,57 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #define MAX_LINE 80 /* 80 chars per line, per command, should be enough. */
 
 /**
  * setup() reads in the next command line, separating it into distinct tokens
- * using whitespace as delimiters. setup() sets the args parameter as a 
+ * using whitespace as delimiters. setup() sets the args parameter as a
  * null-terminated string.
  */
 
-void setup(char inputBuffer[], char *args[],int *background)
+void setup(char inputBuffer[], char *args[], int *background)
 {
     int length, /* # of characters in the command line */
         i,      /* loop index for accessing inputBuffer array */
         start,  /* index where beginning of next command parameter is */
         ct;     /* index of where to place the next parameter into args[] */
-    
+
     ct = 0;
-    
+
     /* read what the user enters on the command line */
-    length = read(STDIN_FILENO, inputBuffer, MAX_LINE);  
+    length = read(STDIN_FILENO, inputBuffer, MAX_LINE);
 
     start = -1;
     if (length == 0)
-        exit(0);            /* ^d was entered, end of user command stream */
-    if (length < 0){
+        exit(0); /* ^d was entered, end of user command stream */
+    if (length < 0)
+    {
         perror("error reading the command");
-	exit(-1);           /* terminate with error code of -1 */
+        exit(-1); /* terminate with error code of -1 */
     }
-    
+
     /* examine every character in the inputBuffer */
-    for (i = 0; i < length; i++) { 
-        switch (inputBuffer[i]){
+    for (i = 0; i < length; i++)
+    {
+        switch (inputBuffer[i])
+        {
         case ' ':
-        case '\t' :               /* argument separators */
-            if(start != -1){
-                args[ct] = &inputBuffer[start];    /* set up pointer */
+        case '\t': /* argument separators */
+            if (start != -1)
+            {
+                args[ct] = &inputBuffer[start]; /* set up pointer */
                 ct++;
             }
             inputBuffer[i] = '\0'; /* add a null char; make a C string */
             start = -1;
             break;
-            
-        case '\n':                 /* should be the final char examined */
-            if (start != -1){
-                args[ct] = &inputBuffer[start];     
+
+        case '\n': /* should be the final char examined */
+            if (start != -1)
+            {
+                args[ct] = &inputBuffer[start];
                 ct++;
             }
             inputBuffer[i] = '\0';
@@ -56,48 +62,109 @@ void setup(char inputBuffer[], char *args[],int *background)
             *background = 1;
             inputBuffer[i] = '\0';
             break;
-        case 'c':
-            if (inputBuffer[i+1] == 'd') {
-                chdir(args[ct]);
-            }  
-            break;
-            
-        default :             /* some other character */
+
+        default: /* some other character */
             if (start == -1)
                 start = i;
-	} 
-    }    
+        }
+    }
     args[ct] = NULL; /* just in case the input line was > 80 */
-} 
+}
 
 int main(void)
 {
-    char inputBuffer[MAX_LINE]; /* buffer to hold the command entered */
-    int background;             /* equals 1 if a command is followed by '&' */
-    char *args[MAX_LINE/2+1];/* command line (of 80) has max of 40 arguments */
-    
+    char inputBuffer[MAX_LINE];   /* buffer to hold the command entered */
+    int background;               /* equals 1 if a command is followed by '&' */
+    char *args[MAX_LINE / 2 + 1]; /* command line (of 80) has max of 40 arguments */
 
-    while (1){            /* Program terminates normally inside setup */
-	background = 0;
-	printf("COMMAND->");
+    while (1)
+    { /* Program terminates normally inside setup */
+        background = 0;
+        printf("COMMAND->");
         fflush(0);
-        setup(inputBuffer, args, &background);       /* get next command */
+        setup(inputBuffer, args, &background); /* get next command */
 
-	/* the steps are:
-	 (1) fork a child process using fork()
-	 (2) the child process will invoke execvp()
-	 (3) if background == 0, the parent will wait, 
-		otherwise returns to the setup() function. */
-        /*chdir for cd command*/
-        pid_t pid = fork();
-        if (pid < 0) {
-            fprintf(stderr, "Fork Failed");
-            return 1;
-        } else if (pid == 0) {
-            execvp(args[0], args);
-        } else {
-            if (background == 0) {
-                while (wait(NULL) != pid);
+        /*If user hits return key*/
+        if (args[0] == NULL)
+        {
+            continue;
+        }
+
+        /*Implements cd command before creating a child process. Due to
+        fact that cd just changes working directory. */
+        if (strcmp(args[0], "cd") == 0)
+        {
+            if (args[1] == NULL)
+            {
+                fprintf(stderr, "Expected argument to \"cd\"\n");
+            }
+            else
+            {
+                if (chdir(args[1]) != 0)
+                {
+                    perror("Error");
+                }
+            }
+            continue; /* Skip the rest of the loop iteration */
+        }
+        /*Implements cp command before creating a child process*/
+        else if (strcmp(args[0], "cp") == 0)
+        {
+            if (args[1] == NULL || args[2] == NULL)
+            {
+                fprintf(stderr, "Expected arguments to \"cp\"\n");
+            }
+            else
+            {
+                char buffer[256];
+                FILE *src, *dst;
+                src = fopen(args[1], "r");
+                dst = fopen(args[2], "w");
+                if (src == NULL || dst == NULL)
+                {
+                    perror("Error");
+                }
+                else
+                {
+                    size_t n, m;
+                    do
+                    {
+                        n = fread(buffer, 1, sizeof buffer, src);
+                        if (n)
+                            m = fwrite(buffer, 1, n, dst);
+                        else
+                            m = 0;
+                    } while ((n > 0) && (n == m));
+                    if (m)
+                        perror("copy");
+
+                    if (fclose(src) != 0 || fclose(dst) != 0)
+                    {
+                        perror("Error");
+                    }
+                }
+            }
+        }
+        else
+        {
+
+            pid_t pid = fork();
+            if (pid < 0)
+            {
+                fprintf(stderr, "Fork Failed");
+                return 1;
+            }
+            else if (pid == 0)
+            {
+                execvp(args[0], args);
+            }
+            else
+            {
+                if (background == 0)
+                {
+                    while (wait(NULL) != pid)
+                        ;
+                }
             }
         }
     }
