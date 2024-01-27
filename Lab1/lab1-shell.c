@@ -105,6 +105,7 @@ int main(void)
         }
         else
         {
+            /*Creates child process by forking from parent*/
             pid_t pid = fork();
             if (pid < 0)
             {
