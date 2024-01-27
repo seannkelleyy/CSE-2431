@@ -1,3 +1,10 @@
+/* Author: Sean Kelley
+    How to compile: After saving the lab1-shell.c file, go to the
+    directory where is was saved and run the command: gcc -o lab1 lab1-shell.c
+    After this you should be able to run the program by typing ./lab1 or lab1,
+    depending on your system.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
