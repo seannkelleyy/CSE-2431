@@ -73,25 +73,22 @@ void setup(char inputBuffer[], char *args[], int *background)
 
 int main(void)
 {
-    char inputBuffer[MAX_LINE];   /* buffer to hold the command entered */
-    int background;               /* equals 1 if a command is followed by '&' */
-    char *args[MAX_LINE / 2 + 1]; /* command line (of 80) has max of 40 arguments */
+    char inputBuffer[MAX_LINE];
+    int background;
+    char *args[MAX_LINE / 2 + 1];
 
     while (1)
-    { /* Program terminates normally inside setup */
+    {
         background = 0;
         printf("COMMAND->");
         fflush(0);
-        setup(inputBuffer, args, &background); /* get next command */
+        setup(inputBuffer, args, &background);
 
-        /*If user hits return key*/
         if (args[0] == NULL)
         {
             continue;
         }
 
-        /*Implements cd command before creating a child process. Due to
-        fact that cd just changes working directory. */
         if (strcmp(args[0], "cd") == 0)
         {
             if (args[1] == NULL)
@@ -105,53 +102,14 @@ int main(void)
                     perror("Error");
                 }
             }
-            continue; /* Skip the rest of the loop iteration */
-        }
-        /*Implements cp command before creating a child process*/
-        else if (strcmp(args[0], "cp") == 0)
-        {
-            if (args[1] == NULL)
-            {
-                fprintf(stderr, "Expected argument to \"cp\"\n");
-            }
-            else
-            {
-                if (args[2] == NULL)
-                {
-                    fprintf(stderr, "Expected argument to \"cp\"\n");
-                }
-                else
-                {
-                    pid_t pid = fork();
-                    if (pid < 0)
-                    {
-                        fprintf(stderr, "Fork Failed");
-                        return 1;
-                    }
-                    else if (pid == 0)
-                    {
-                        execlp("/bin/cp", "cp", args[1], args[2], NULL);
-                    }
-                    else
-                    {
-                        if (background == 0)
-                        {
-                            while (wait(NULL) != pid)
-                                ;
-                        }
-                    }
-                }
-            }
-            continue; /* Skip the rest of the loop iteration */
         }
         else
         {
-
             pid_t pid = fork();
             if (pid < 0)
             {
                 fprintf(stderr, "Fork Failed");
-                return 1;
+                return;
             }
             else if (pid == 0)
             {
