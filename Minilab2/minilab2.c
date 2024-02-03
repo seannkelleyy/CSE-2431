@@ -1,6 +1,8 @@
 #include <pthread.h>
 #include <stdio.h>
 
+// Written by: Sean Kelley
+
 #define NUM_ITERATIONS 1000000
 
 long long sharedCounter = 0;
