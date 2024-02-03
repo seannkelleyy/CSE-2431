@@ -3,13 +3,11 @@
 
 #define NUM_ITERATIONS 1000000
 
-// Global variable
 long long sharedCounter = 0;
 
 // Mutex for synchronizing access to sharedCounter
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-// Function that each thread will execute
 void *incrementCounter(void *arg)
 {
     for (int i = 0; i < NUM_ITERATIONS; i++)
