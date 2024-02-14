@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 // Written by: Sean Kelley
+// Compiled with gcc -pthread minilab2.c -o minilab2
 
 #define NUM_ITERATIONS 1000000
 
@@ -12,7 +13,8 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void *incrementCounter(void *arg)
 {
-    for (int i = 0; i < NUM_ITERATIONS; i++)
+    int i;
+    for (i = 0; i < NUM_ITERATIONS; i++)
     {
         pthread_mutex_lock(&mutex);
         sharedCounter++;
