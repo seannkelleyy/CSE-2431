@@ -13,13 +13,16 @@ int out = 0;
 int insert_item(buffer_item item)
 {
     /* insert an item into buffer */
-    /* return 0 if successful, otherwise return -1 indicating an error condition */
-    sem_wait(&empty);
+    if (sem_trywait(&empty) == -1)
+    {
+        return -1;
+    }
     pthread_mutex_lock(&mutex);
 
     buffer[in] = item;
     in = (in + 1) % BUFFER_SIZE;
 
+    printf("inserting item %d\n", item);
     pthread_mutex_unlock(&mutex);
     sem_post(&full);
 
@@ -30,12 +33,16 @@ int insert_item(buffer_item item)
 int remove_item(buffer_item *itemp)
 {
     /* remove an object from buffer and placing it in itemp */
-    /* return 0 if successful, otherwise return -1 indicating an error condition */
-    sem_wait(&full);
+    if (sem_trywait(&full) == -1)
+    {
+        return -1;
+    }
     pthread_mutex_lock(&mutex);
 
     *itemp = buffer[out];
     out = (out + 1) % BUFFER_SIZE;
+
+    printf("removing item %d\n", *itemp);
 
     pthread_mutex_unlock(&mutex);
     sem_post(&empty);

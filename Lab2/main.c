@@ -1,3 +1,9 @@
+/**
+ * Author: Sean Kelley
+ * How to compile: You can either run `gcc -pthread -o lab2 main.c` or
+ * use the `make compile` command.
+ */
+
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdlib.h>
@@ -7,14 +13,17 @@
 #include "producer.c"
 #include "consumer.c"
 
-#define MAX_SLEEP_TIME 3
-
 pthread_mutex_t mutex;
 sem_t empty, full;
 
 int main(int argc, char *argv[])
 {
     /* 1. Get command line arguments argv[1], argv[2], argv[3] */
+    if (argc != 4)
+    {
+        printf("Error: Please provide exactly 3 arguments.\n");
+        return 1;
+    }
     int sleep_time = atoi(argv[1]);
     int num_producers = atoi(argv[2]);
     int num_consumers = atoi(argv[3]);
@@ -23,26 +32,41 @@ int main(int argc, char *argv[])
     pthread_mutex_init(&mutex, NULL);
     sem_init(&empty, 0, BUFFER_SIZE);
     sem_init(&full, 0, 0);
-    printf("sleep_time: %d\n", sleep_time);
+    int i;
 
     /* 3. Create producer thread(s) */
     pthread_t producers[num_producers];
-    for (int i = 0; i < num_producers; i++)
+    for (i = 0; i < num_producers; i++)
     {
-        pthread_create(&producers[i], NULL, producer, NULL);
+        if (pthread_create(&producers[i], NULL, producer, NULL) != 0)
+        {
+            perror("Failed to create producer thread");
+            return 1;
+        }
         printf("producer %d\n", i);
     }
 
     /* 4. Create consumer thread(s) */
     pthread_t consumers[num_consumers];
-    for (int i = 0; i < num_consumers; i++)
+    for (i = 0; i < num_consumers; i++)
     {
-        pthread_create(&consumers[i], NULL, consumer, NULL);
+        if (pthread_create(&consumers[i], NULL, consumer, NULL) != 0)
+        {
+            perror("Failed to create consumer thread");
+            return 1;
+        }
         printf("consumer %d\n", i);
     }
 
     /* 5. Sleep */
     sleep(sleep_time);
+
+    int val;
+    printf("\n---Empty and Full lengths---\n");
+    sem_getvalue(&empty, &val);
+    printf("empty: %d\n", val);
+    sem_getvalue(&full, &val);
+    printf("full: %d\n\n", val);
 
     /* 6. Release resources, e.g. destroy mutex and semaphores */
     pthread_mutex_destroy(&mutex);

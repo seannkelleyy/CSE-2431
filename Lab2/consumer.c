@@ -10,11 +10,11 @@ void *consumer(void *param)
     while (1)
     {
         /* Sleep for a random period of time */
-        sleep(rand_r(&seed));
+        sleep(rand_r(&seed) % 10);
 
-        if (remove_item(&item))
+        if (remove_item(&item) == -1)
         {
-            printf("Error : Consumer was unable to remove item\n");
+            printf("Error : Consumer was unable to remove %d\n", item);
         }
         else
         {
