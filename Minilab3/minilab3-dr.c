@@ -5,7 +5,7 @@
 // Author: Sean Kelley
 // Compiled with gcc -pthread minilab3-dr.c -o minilab3-dr
 /*
-Im=n my testing, I have noticed that large number of iterations
+In my testing, I have noticed that large number of iterations
 and more threads cause more significant data race issue. I have
 also noticed that running 100 iterations with 2 threads also consitenly
 produces 200 as the final answer. So it seems like less threads and
