@@ -6,5 +6,9 @@ compile : main.c consumer.c producer.c buffer.c buffer.h
 clean :
 	rm lab2
 
+# zip the files
+zip :
+	zip lab2.zip main.c consumer.c producer.c buffer.c buffer.h makefile
+
 # clean and compile
-rebuild : clean make
+rebuild : clean compile

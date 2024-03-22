@@ -14,7 +14,7 @@ void *consumer(void *param)
 
         if (remove_item(&item) == -1)
         {
-            printf("Error : Consumer was unable to remove %d\n", item);
+            printf("Error : Consumer was unable to remove an item\n");
         }
         else
         {

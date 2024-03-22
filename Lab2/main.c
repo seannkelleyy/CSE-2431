@@ -58,15 +58,29 @@ int main(int argc, char *argv[])
         printf("consumer %d\n", i);
     }
 
+    for (i = 0; i < num_producers; i++)
+    {
+        pthread_cancel(producers[i]);
+        if (pthread_join(producers[i], NULL) != 0)
+        {
+            perror("Failed to join producer thread");
+            return 1;
+        }
+    }
+
+    /* Join consumer threads */
+    for (i = 0; i < num_consumers; i++)
+    {
+        pthread_cancel(consumers[i]);
+
+        if (pthread_join(consumers[i], NULL) != 0)
+        {
+            perror("Failed to join consumer thread");
+            return 1;
+        }
+    }
     /* 5. Sleep */
     sleep(sleep_time);
-
-    int val;
-    printf("\n---Empty and Full lengths---\n");
-    sem_getvalue(&empty, &val);
-    printf("empty: %d\n", val);
-    sem_getvalue(&full, &val);
-    printf("full: %d\n\n", val);
 
     /* 6. Release resources, e.g. destroy mutex and semaphores */
     pthread_mutex_destroy(&mutex);
