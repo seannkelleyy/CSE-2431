@@ -6,7 +6,6 @@ How to compile: gcc minilab5.c -o minilab5
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 // Define the maximum number of frames
 #define MAX_FRAMES 20
