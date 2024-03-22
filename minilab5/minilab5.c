@@ -1,6 +1,12 @@
+/*
+Author: Sean Kelley
+How to compile: gcc minilab5.c -o minilab5
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 // Define the maximum number of frames
 #define MAX_FRAMES 20
@@ -72,40 +78,19 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-// Function to find the optimal page to replace
-int predict(int pages[], int pn, int index, int frameSize, int frame[])
-{
-    int res = -1, farthest = index;
-    for (int i = 0; i < frameSize; i++)
-    {
-        int j;
-        for (j = index; j < pn; j++)
-        {
-            if (frame[i] == pages[j])
-            {
-                if (j > farthest)
-                {
-                    farthest = j;
-                    res = i;
-                }
-                break;
-            }
-        }
-        if (j == pn)
-            return i;
-    }
-    return (res == -1) ? 0 : res;
-}
-
 void optimal(int num_frames, char *refstring)
 {
-    int frame[num_frames], hit = 0;
-    int pages[256];
+    char frame[num_frames];
+    int hit = 0, age[num_frames];
+    char pages[256];
     int pn = strlen(refstring);
     for (int i = 0; i < pn; i++)
         pages[i] = refstring[i];
     for (int i = 0; i < num_frames; i++)
+    {
         frame[i] = -1;
+        age[i] = -1;
+    }
     for (int i = 0; i < pn; i++)
     {
         int j;
@@ -113,15 +98,36 @@ void optimal(int num_frames, char *refstring)
             if (frame[j] == pages[i])
             {
                 hit++;
+                age[j] = i;
                 break;
             }
         if (j == num_frames)
         {
-            int pos = predict(pages, pn, i + 1, num_frames, frame);
+            int pos = 0, farthest = -1;
+            for (j = 0; j < num_frames; j++)
+            {
+                int k;
+                for (k = i + 1; k < pn; k++)
+                {
+                    if (frame[j] == pages[k])
+                        break;
+                }
+                if (k == pn)
+                {
+                    pos = j;
+                    break;
+                }
+                else if (k > farthest)
+                {
+                    farthest = k;
+                    pos = j;
+                }
+            }
             frame[pos] = pages[i];
+            age[pos] = i;
         }
     }
-    printf("LRU: length: %d, hits: %d, faults: %d\n", pn, hit, pn - hit);
+    printf("Optimal: length: %d, hits: %d, faults: %d\n", pn, hit, pn - hit);
     printf("Final state of memory content: ");
     for (int i = 0; i < num_frames; i++)
         printf("%c ", frame[i]);
@@ -152,7 +158,7 @@ void fifo(int num_frames, char *refstring)
             f = (f + 1) % num_frames;
         }
     }
-    printf("LRU: length: %d, hits: %d, faults: %d\n", pn, hit, pn - hit);
+    printf("FIFO: length: %d, hits: %d, faults: %d\n", pn, hit, pn - hit);
     printf("Final state of memory content: ");
     for (int i = 0; i < num_frames; i++)
         printf("%c ", frame[i]);
