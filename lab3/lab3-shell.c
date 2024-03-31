@@ -18,7 +18,6 @@
 
 char *history[MAX_HISTORY];
 int HISTORY_COUNT = 0;
-int HISTORY_INDEX = 0;
 
 void split_args(char *args[])
 {
@@ -57,18 +56,22 @@ void add_to_history(char *cmd)
         return;
     }
 
-    // Free the old command if it exists
-    free(history[HISTORY_INDEX]);
+    // If history is full, free the oldest command and shift the rest
+    if (HISTORY_COUNT == MAX_HISTORY)
+    {
+        free(history[0]);
+        for (int i = 0; i < MAX_HISTORY - 1; i++)
+        {
+            history[i] = history[i + 1];
+        }
+        HISTORY_COUNT--;
+    }
 
     // Add the new command to history
-    history[HISTORY_INDEX] = strdup(cmd);
+    history[HISTORY_COUNT] = strdup(cmd);
 
-    // Update history index and count
-    HISTORY_INDEX = (HISTORY_INDEX + 1) % MAX_HISTORY;
-    if (HISTORY_COUNT < MAX_HISTORY)
-    {
-        HISTORY_COUNT++;
-    }
+    // Update history count
+    HISTORY_COUNT++;
 }
 
 char *retrieve_command(int index)
@@ -309,10 +312,6 @@ int main(void)
 
             free(command);
 
-            if (history[HISTORY_INDEX] != NULL)
-            {
-                free(history[HISTORY_INDEX]);
-            }
             continue;
         }
 
