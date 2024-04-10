@@ -56,16 +56,16 @@ void add_to_history(char *cmd)
         return;
     }
 
-    // If history is full, free the oldest command and shift the rest
-    if (HISTORY_COUNT == MAX_HISTORY)
-    {
-        free(history[0]);
-        for (int i = 0; i < MAX_HISTORY - 1; i++)
-        {
-            history[i] = history[i + 1];
-        }
-        HISTORY_COUNT--;
-    }
+    // // If history is full, free the oldest command and shift the rest
+    // if (HISTORY_COUNT == MAX_HISTORY)
+    // {
+    //     free(history[0]);
+    //     for (int i = 0; i < MAX_HISTORY - 1; i++)
+    //     {
+    //         history[i] = history[i + 1];
+    //     }
+    //     HISTORY_COUNT--;
+    // }
 
     // Add the new command to history
     history[HISTORY_COUNT] = strdup(cmd);
@@ -88,15 +88,81 @@ char *retrieve_command(int index)
 void handle_SIGINT(int signum)
 {
     printf("\n");
-    for (int i = 0; i < HISTORY_COUNT; i++)
+    int i;
+    if (HISTORY_COUNT == 0)
     {
-        if (history[i] != NULL)
+        printf("No commands in history.\n");
+        return;
+    }
+    else if (HISTORY_COUNT < MAX_HISTORY)
+    {
+        for (i = 0; i < HISTORY_COUNT; i++)
         {
-            printf("%d: %s\n", i + 1, history[i]);
+            if (history[i] != NULL)
+            {
+                printf("%d: %s\n", i + 1, history[i]);
+            }
+        }
+    }
+    else
+    {
+        for (i = HISTORY_COUNT - MAX_HISTORY; i < HISTORY_COUNT; i++)
+        {
+            if (history[i] != NULL)
+            {
+                printf("%d: %s\n", i + 1, history[i]);
+            }
         }
     }
     printf("COMMAND->");
     fflush(stdout);
+}
+
+// Function to save history to file
+void save_history(char *userid)
+{
+    char filename[50];
+    sprintf(filename, "%s.history", userid);
+    FILE *file = fopen(filename, "w");
+    if (file == NULL)
+    {
+        fprintf(stderr, "Error: Failed to open file\n");
+        return;
+    }
+    for (int i = 0; i < HISTORY_COUNT; i++)
+    {
+        if (history[i] != NULL)
+        {
+            fprintf(file, "%s\n", history[i]);
+        }
+    }
+    fclose(file);
+}
+
+// Function to load history from file
+void load_history(char *userid)
+{
+    char filename[50];
+    sprintf(filename, "%s.history", userid);
+    FILE *file = fopen(filename, "r");
+    if (file == NULL)
+    {
+        // File does not exist, initialize an empty history
+        for (int i = 0; i < MAX_HISTORY; i++)
+        {
+            history[i] = NULL;
+        }
+        HISTORY_COUNT = 0;
+        return;
+    }
+    char line[MAX_LINE];
+    while (fgets(line, sizeof(line), file))
+    {
+        // Remove trailing newline
+        line[strcspn(line, "\n")] = '\0';
+        add_to_history(line);
+    }
+    fclose(file);
 }
 
 void setup(char inputBuffer[], char *args[], int *background)
@@ -183,6 +249,7 @@ int execute_command(char *args[], int background)
     }
     else if (strcmp(args[0], "exit") == 0)
     {
+        save_history("kelley.1102");
         exit(0);
     }
 
@@ -221,6 +288,9 @@ int main(void)
     char inputBuffer[MAX_LINE];
     int background;
     char *args[MAX_LINE / 2 + 1];
+
+    // Load history from file
+    load_history("kelley.1102");
 
     // Set up the signal handler
     struct sigaction handler = {.sa_handler = handle_SIGINT, .sa_flags = SA_RESTART};
@@ -301,19 +371,24 @@ int main(void)
         {
             char *command = strdup(args[0]);
 
-            /* Add a space and the second argument, if it exists. */
-            if (args[1] != NULL)
+            int i = 1;
+            while (args[i] != NULL)
             {
-                command = realloc(command, strlen(command) + strlen(args[1]) + 2);
+                command = realloc(command, strlen(command) + strlen(args[i]) + 2);
                 strcat(command, " ");
-                strcat(command, args[1]);
+                strcat(command, args[i]);
+                i++;
             }
+
             add_to_history(command);
 
             free(command);
 
             continue;
         }
+
+        // Save history to file before exiting
+        save_history("kelley.1102");
 
         return 0;
     }

@@ -1,4 +1,4 @@
-# compile code for Lab3
+# compile code for Lab4
 make : lab4-shell.c
 	gcc -o lab4 lab4-shell.c
 
